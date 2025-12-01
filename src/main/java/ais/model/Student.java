@@ -1,10 +1,13 @@
-// whatever
-class Student {
+package ais.model;
+
+public class Student {
+  private int id;
   private String name;
   private int age;
   private String address;
 
-  public Student(String name, int age, String address) {
+  public Student(int id, String name, int age, String address) {
+    this.id = id;
     this.name = name;
     this.age = age;
     this.address = address;
@@ -41,5 +44,17 @@ class Student {
         ", age=" + age +
         ", address='" + address + '\'' +
         '}';
+  }
+
+  public int getId() {
+    return id;
+  }
+
+  public Course getCourse() {
+    return course;
+  }
+
+  public void setCourse(Course course) {
+    this.course = course;
   }
 }

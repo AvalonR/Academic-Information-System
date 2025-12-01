@@ -5,9 +5,9 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.ais</groupId>
+    <groupId>ais</groupId>
     <artifactId>student-grading-system</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.01</version>
 
     <properties>
         <maven.compiler.source>25</maven.compiler.source>
@@ -88,7 +88,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>com.ais.Main</mainClass>
+                    <mainClass>ais.Main</mainClass>
                 </configuration>
             </plugin>
 
