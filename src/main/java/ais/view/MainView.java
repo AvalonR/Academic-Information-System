@@ -1,15 +1,15 @@
 package ais.view;
 
-import ais.service.AuthService;
-import ais.service.StudentService;
-import ais.service.SubjectService;
-import ais.service.TeacherService;
+import ais.model.Student;
+import ais.model.Teacher;
+import ais.service.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class MainView {
@@ -18,14 +18,22 @@ public class MainView {
   private final StudentService studentService;
   private final TeacherService teacherService;
   private final SubjectService subjectService;
+  private final CourseService courseService;
+  private final GradeService gradeService;
   private final Stage stage;
+  private final Runnable onSwitchUser;
 
   public MainView(AuthService authService, StudentService studentService,
-      TeacherService teacherService, SubjectService subjectService) {
+      TeacherService teacherService, SubjectService subjectService,
+      CourseService courseService, GradeService gradeService,
+      Runnable onSwitchUser) {
     this.authService = authService;
     this.studentService = studentService;
     this.teacherService = teacherService;
     this.subjectService = subjectService;
+    this.courseService = courseService;
+    this.gradeService = gradeService;
+    this.onSwitchUser = onSwitchUser;
     this.stage = new Stage();
     initUI();
   }
@@ -55,28 +63,84 @@ public class MainView {
 
     TabPane tabPane = new TabPane();
 
-    Tab studentsTab = new Tab("Students");
-    studentsTab.setClosable(false);
-    studentsTab.setContent(new StudentManagementView(studentService));
-
-    Tab teachersTab = new Tab("Teachers");
-    teachersTab.setClosable(false);
-    teachersTab.setContent(new TeacherManagementView(teacherService));
-
-    Tab subjectsTab = new Tab("Subjects");
-    subjectsTab.setClosable(false);
-    subjectsTab.setContent(new SubjectManagementView(subjectService, teacherService));
-
-    Tab coursesTab = new Tab("Courses");
-    coursesTab.setClosable(false);
-    coursesTab.setContent(new Label("Course management coming soon..."));
-
     if (authService.isAdmin()) {
+      Tab studentsTab = new Tab("Students");
+      studentsTab.setClosable(false);
+      studentsTab.setContent(new StudentManagementView(studentService));
+
+      Tab teachersTab = new Tab("Teachers");
+      teachersTab.setClosable(false);
+      teachersTab.setContent(new TeacherManagementView(teacherService));
+
+      Tab subjectsTab = new Tab("Subjects");
+      subjectsTab.setClosable(false);
+      subjectsTab.setContent(new SubjectManagementView(subjectService, teacherService));
+
+      Tab coursesTab = new Tab("Courses (Groups)");
+      coursesTab.setClosable(false);
+      coursesTab.setContent(new CourseManagementView(courseService, subjectService, studentService));
+
       tabPane.getTabs().addAll(studentsTab, teachersTab, subjectsTab, coursesTab);
+
     } else if (authService.isTeacher()) {
-      tabPane.getTabs().addAll(studentsTab, subjectsTab, coursesTab);
-    } else {
-      tabPane.getTabs().add(coursesTab);
+
+      Teacher teacher = teacherService.getAllTeachers().stream()
+          .filter(t -> t.getUser() != null && t.getUser().getId().equals(authService.getCurrentUser().getId()))
+          .findFirst()
+          .orElse(null);
+
+      if (teacher != null) {
+        Tab studentsTab = new Tab("Students");
+        studentsTab.setClosable(false);
+        studentsTab.setContent(new StudentListView(studentService));
+
+        Tab subjectsTab = new Tab("My Subjects");
+        subjectsTab.setClosable(false);
+        subjectsTab.setContent(new SubjectListView(subjectService, teacher));
+
+        Tab coursesTab = new Tab("My Courses");
+        coursesTab.setClosable(false);
+        coursesTab.setContent(new CourseListView(courseService, teacher));
+
+        Tab gradesTab = new Tab("Grade Students");
+        gradesTab.setClosable(false);
+        gradesTab
+            .setContent(new GradeManagementView(gradeService, courseService, subjectService, studentService, teacher));
+
+        tabPane.getTabs().addAll(studentsTab, subjectsTab, coursesTab, gradesTab);
+      } else {
+        Label noTeacherLabel = new Label("No teacher record found for this account. Please contact an administrator.");
+        noTeacherLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: red;");
+        VBox noTeacherBox = new VBox(noTeacherLabel);
+        noTeacherBox.setAlignment(Pos.CENTER);
+        noTeacherBox.setPadding(new Insets(50));
+        Tab infoTab = new Tab("Info");
+        infoTab.setClosable(false);
+        infoTab.setContent(noTeacherBox);
+        tabPane.getTabs().add(infoTab);
+      }
+    } else if (authService.isStudent()) {
+      Student student = studentService.getAllStudents().stream()
+          .filter(s -> s.getUser() != null && s.getUser().getId().equals(authService.getCurrentUser().getId()))
+          .findFirst()
+          .orElse(null);
+
+      if (student != null) {
+        Tab gradesTab = new Tab("My Grades");
+        gradesTab.setClosable(false);
+        gradesTab.setContent(new StudentGradeView(gradeService, student));
+        tabPane.getTabs().add(gradesTab);
+      } else {
+        Label noDataLabel = new Label("No student record found for this account");
+        noDataLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: red;");
+        VBox noDataBox = new VBox(noDataLabel);
+        noDataBox.setAlignment(Pos.CENTER);
+        noDataBox.setPadding(new Insets(50));
+        Tab infoTab = new Tab("Info");
+        infoTab.setClosable(false);
+        infoTab.setContent(noDataBox);
+        tabPane.getTabs().add(infoTab);
+      }
     }
 
     root.setTop(topBar);
@@ -90,12 +154,28 @@ public class MainView {
   private void handleLogout() {
     Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
     alert.setTitle("Logout");
-    alert.setHeaderText("Are you sure you want to logout?");
+    alert.setHeaderText("What would you like to do?");
+    alert.setContentText("Choose your option:");
+
+    ButtonType switchUserButton = new ButtonType("Switch User");
+    ButtonType exitButton = new ButtonType("Exit Application");
+    ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+    alert.getButtonTypes().setAll(switchUserButton, exitButton, cancelButton);
 
     alert.showAndWait().ifPresent(response -> {
-      if (response == ButtonType.OK) {
+      if (response == switchUserButton) {
         authService.logout();
         stage.close();
+
+        javafx.application.Platform.runLater(() -> {
+          onSwitchUser.run();
+        });
+
+      } else if (response == exitButton) {
+        authService.logout();
+        stage.close();
+        javafx.application.Platform.exit();
         System.exit(0);
       }
     });

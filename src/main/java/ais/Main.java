@@ -2,14 +2,8 @@ package ais;
 
 import ais.model.User;
 import ais.model.UserRole;
-import ais.repository.StudentRepository;
-import ais.repository.SubjectRepository;
-import ais.repository.TeacherRepository;
-import ais.repository.UserRepository;
-import ais.service.AuthService;
-import ais.service.StudentService;
-import ais.service.SubjectService;
-import ais.service.TeacherService;
+import ais.repository.*;
+import ais.service.*;
 import ais.view.LoginView;
 import ais.view.MainView;
 import javafx.application.Application;
@@ -24,6 +18,8 @@ public class Main extends Application {
   private StudentService studentService;
   private TeacherService teacherService;
   private SubjectService subjectService;
+  private CourseService courseService;
+  private GradeService gradeService;
 
   @Override
   public void init() {
@@ -36,11 +32,16 @@ public class Main extends Application {
       StudentRepository studentRepository = new StudentRepository(sessionFactory);
       TeacherRepository teacherRepository = new TeacherRepository(sessionFactory);
       SubjectRepository subjectRepository = new SubjectRepository(sessionFactory);
+      CourseRepository courseRepository = new CourseRepository(sessionFactory);
+      GradeRepository gradeRepository = new GradeRepository(sessionFactory);
 
       authService = new AuthService(userRepository);
       studentService = new StudentService(studentRepository, userRepository);
       teacherService = new TeacherService(teacherRepository, userRepository);
       subjectService = new SubjectService(subjectRepository, teacherRepository);
+      courseService = new CourseService(courseRepository, subjectRepository, studentRepository);
+      gradeService = new GradeService(gradeRepository, studentRepository, subjectRepository,
+          teacherRepository, courseRepository);
 
       createDefaultUsers(userRepository);
 
@@ -53,11 +54,16 @@ public class Main extends Application {
 
   @Override
   public void start(Stage primaryStage) {
+    showLoginScreen();
+  }
+
+  private void showLoginScreen() {
     LoginView loginView = new LoginView(authService, () -> {
-      MainView mainView = new MainView(authService, studentService, teacherService, subjectService);
+      MainView mainView = new MainView(authService, studentService, teacherService,
+          subjectService, courseService, gradeService,
+          this::showLoginScreen);
       mainView.show();
     });
-
     loginView.show();
   }
 

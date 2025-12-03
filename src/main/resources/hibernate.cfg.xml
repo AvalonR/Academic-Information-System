@@ -16,5 +16,7 @@
         <mapping class="ais.model.Student"/>
         <mapping class="ais.model.Teacher"/>
         <mapping class="ais.model.Subject"/>
+        <mapping class="ais.model.Course"/>
+        <mapping class="ais.model.Grade"/>
     </session-factory>
 </hibernate-configuration>
