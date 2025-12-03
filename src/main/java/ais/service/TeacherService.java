@@ -1,34 +1,67 @@
 package ais.service;
 
-import ais.repository.TeacherRepositoryInterface;
 import ais.model.Teacher;
+import ais.model.User;
+import ais.model.UserRole;
+import ais.repository.TeacherRepository;
+import ais.repository.UserRepository;
 
 import java.util.List;
 
 public class TeacherService {
-  private final TeacherRepositoryInterface teacherRepo;
-  private int nextId = 1;
 
-  public TeacherService(TeacherRepositoryInterface teacherRepo) {
-    this.teacherRepo = teacherRepo;
+  private final TeacherRepository teacherRepository;
+  private final UserRepository userRepository;
+
+  public TeacherService(TeacherRepository teacherRepository, UserRepository userRepository) {
+    this.teacherRepository = teacherRepository;
+    this.userRepository = userRepository;
   }
 
-  public Teacher createTeacher(String name, String subject, String address) {
-    if (subject.isEmpty()) {
-      throw new IllegalArgumentException("Teacher is not assigned to any subject.");
+  public void createTeacher(String name, String address, String specialization) {
+    Teacher teacher = new Teacher(name, address, specialization);
+
+    String[] nameParts = name.split(" ");
+    String username = nameParts[0].toLowerCase();
+    String password = nameParts.length > 1 ? nameParts[nameParts.length - 1].toLowerCase() : username;
+
+    User user = new User(username, password, UserRole.TEACHER);
+    teacher.setUser(user);
+
+    teacherRepository.save(teacher);
+  }
+
+  public void updateTeacher(Integer id, String name, String address, String specialization) {
+    Teacher teacher = teacherRepository.findById(id);
+    if (teacher == null) {
+      throw new IllegalArgumentException("Teacher not found");
     }
 
-    Teacher t = new Teacher(nextId++, name, subject, address);
+    teacher.setName(name);
+    teacher.setAddress(address);
+    teacher.setSpecialization(specialization);
 
-    teacherRepo.add(t);
-    return t;
+    if (teacher.getUser() != null) {
+      String[] nameParts = name.split(" ");
+      String username = nameParts[0].toLowerCase();
+      String password = nameParts.length > 1 ? nameParts[nameParts.length - 1].toLowerCase() : username;
+
+      teacher.getUser().setUsername(username);
+      teacher.getUser().setPassword(password);
+    }
+
+    teacherRepository.update(teacher);
   }
 
-  public boolean deleteTeacher(int id) {
-    return teacherRepo.remove(id);
+  public void deleteTeacher(Integer id) {
+    teacherRepository.delete(id);
   }
 
   public List<Teacher> getAllTeachers() {
-    return teacherRepo.findAll();
+    return teacherRepository.findAll();
+  }
+
+  public Teacher getTeacherById(Integer id) {
+    return teacherRepository.findById(id);
   }
 }

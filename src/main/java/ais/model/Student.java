@@ -1,16 +1,43 @@
 package ais.model;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "students")
 public class Student {
-  private int id;
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Integer id;
+
+  @Column(nullable = false)
   private String name;
-  private int age;
+
+  @Column(nullable = false)
+  private Integer age;
+
+  @Column(nullable = false)
   private String address;
 
-  public Student(int id, String name, int age, String address) {
-    this.id = id;
+  @OneToOne(cascade = CascadeType.ALL)
+  @JoinColumn(name = "user_id")
+  private User user;
+
+  public Student() {
+  }
+
+  public Student(String name, Integer age, String address) {
     this.name = name;
     this.age = age;
     this.address = address;
+  }
+
+  public Integer getId() {
+    return id;
+  }
+
+  public void setId(Integer id) {
+    this.id = id;
   }
 
   public String getName() {
@@ -21,11 +48,11 @@ public class Student {
     this.name = name;
   }
 
-  public int getAge() {
+  public Integer getAge() {
     return age;
   }
 
-  public void setAge(int age) {
+  public void setAge(Integer age) {
     this.age = age;
   }
 
@@ -37,24 +64,16 @@ public class Student {
     this.address = address;
   }
 
+  public User getUser() {
+    return user;
+  }
+
+  public void setUser(User user) {
+    this.user = user;
+  }
+
   @Override
   public String toString() {
-    return "Student{" +
-        "name='" + name + '\'' +
-        ", age=" + age +
-        ", address='" + address + '\'' +
-        '}';
-  }
-
-  public int getId() {
-    return id;
-  }
-
-  public Course getCourse() {
-    return course;
-  }
-
-  public void setCourse(Course course) {
-    this.course = course;
+    return id + ": " + name + " (" + age + " years old)";
   }
 }

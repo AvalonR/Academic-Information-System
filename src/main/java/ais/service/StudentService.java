@@ -1,34 +1,75 @@
 package ais.service;
 
-import ais.repository.StudentRepositoryInterface;
 import ais.model.Student;
+import ais.model.User;
+import ais.model.UserRole;
+import ais.repository.StudentRepository;
+import ais.repository.UserRepository;
 
 import java.util.List;
 
 public class StudentService {
-  private final StudentRepositoryInterface studentRepo;
-  private int nextId = 1;
 
-  public StudentService(StudentRepositoryInterface studentRepo) {
-    this.studentRepo = studentRepo;
+  private final StudentRepository studentRepository;
+  private final UserRepository userRepository;
+
+  public StudentService(StudentRepository studentRepository, UserRepository userRepository) {
+    this.studentRepository = studentRepository;
+    this.userRepository = userRepository;
   }
 
-  public Student createStudent(String name, int age, String address) {
+  public void createStudent(String name, Integer age, String address) {
     if (age < 5) {
-      throw new IllegalArgumentException("Student is too young.");
+      throw new IllegalArgumentException("Student must be at least 5 years old");
     }
 
-    Student s = new Student(nextId++, name, age, address);
+    Student student = new Student(name, age, address);
 
-    studentRepo.add(s);
-    return s;
+    String[] nameParts = name.split(" ");
+    String username = nameParts[0].toLowerCase();
+    String password = nameParts.length > 1 ? nameParts[nameParts.length - 1].toLowerCase() : username;
+
+    User user = new User(username, password, UserRole.STUDENT);
+    student.setUser(user);
+
+    studentRepository.save(student);
   }
 
-  public boolean deleteStudent(int id) {
-    return studentRepo.remove(id);
+  public void updateStudent(Integer id, String name, Integer age, String address) {
+    if (age < 5) {
+      throw new IllegalArgumentException("Student must be at least 5 years old");
+    }
+
+    Student student = studentRepository.findById(id);
+    if (student == null) {
+      throw new IllegalArgumentException("Student not found");
+    }
+
+    student.setName(name);
+    student.setAge(age);
+    student.setAddress(address);
+
+    if (student.getUser() != null) {
+      String[] nameParts = name.split(" ");
+      String username = nameParts[0].toLowerCase();
+      String password = nameParts.length > 1 ? nameParts[nameParts.length - 1].toLowerCase() : username;
+
+      student.getUser().setUsername(username);
+      student.getUser().setPassword(password);
+    }
+
+    studentRepository.update(student);
+  }
+
+  public void deleteStudent(Integer id) {
+    studentRepository.delete(id);
   }
 
   public List<Student> getAllStudents() {
-    return studentRepo.findAll();
+    return studentRepository.findAll();
+  }
+
+  public Student getStudentById(Integer id) {
+    return studentRepository.findById(id);
   }
 }

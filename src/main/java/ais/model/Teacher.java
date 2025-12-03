@@ -1,19 +1,43 @@
 package ais.model;
 
-import java.util.ArrayList;
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "teachers")
 public class Teacher {
-  private int id;
-  private String name;
-  private String subject;
-  private String address;
-  private ArrayList<Subject> subjects = new ArrayList<>();
 
-  public Teacher(int id, String name, String subject, String address) {
-    this.id = id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Integer id;
+
+  @Column(nullable = false)
+  private String name;
+
+  @Column(nullable = false)
+  private String address;
+
+  @Column(nullable = true)
+  private String specialization;
+
+  @OneToOne(cascade = CascadeType.ALL)
+  @JoinColumn(name = "user_id")
+  private User user;
+
+  public Teacher() {
+  }
+
+  public Teacher(String name, String address, String specialization) {
     this.name = name;
-    this.subject = subject;
     this.address = address;
+    this.specialization = specialization;
+  }
+
+  public Integer getId() {
+    return id;
+  }
+
+  public void setId(Integer id) {
+    this.id = id;
   }
 
   public String getName() {
@@ -24,14 +48,6 @@ public class Teacher {
     this.name = name;
   }
 
-  public String getSubject() {
-    return subject;
-  }
-
-  public void setSubject(String subject) {
-    this.subject = subject;
-  }
-
   public String getAddress() {
     return address;
   }
@@ -40,27 +56,24 @@ public class Teacher {
     this.address = address;
   }
 
+  public String getSpecialization() {
+    return specialization;
+  }
+
+  public void setSpecialization(String specialization) {
+    this.specialization = specialization;
+  }
+
+  public User getUser() {
+    return user;
+  }
+
+  public void setUser(User user) {
+    this.user = user;
+  }
+
   @Override
   public String toString() {
-    return "Teacher{" +
-        "name='" + name + '\'' +
-        ", subject='" + subject + '\'' +
-        ", address='" + address + '\'' +
-        '}';
-  }
-
-  public int getId() {
-    return id;
-  }
-
-  public ArrayList<Subject> getSubjects() {
-    return subjects;
-  }
-
-  public void setSubjects(ArrayList<Subject> subjects) {
-    this.subjects = subjects;
-    for (Subject s : subjects) {
-      // s.setTeacher(this);
-    }
+    return id + ": " + name + (specialization != null ? " - " + specialization : "");
   }
 }

@@ -1,19 +1,42 @@
 package ais.model;
 
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Entity
+@Table(name = "courses")
 public class Course {
-  private int id;
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Integer id;
+
+  @Column(nullable = false)
   private String name;
-  private String description;
-  private List<Subject> subjects = new ArrayList<>();
+
+  @ManyToOne
+  @JoinColumn(name = "subject_id")
+  private Subject subject;
+
+  @ManyToMany
+  @JoinTable(name = "course_students", joinColumns = @JoinColumn(name = "course_id"), inverseJoinColumns = @JoinColumn(name = "student_id"))
   private List<Student> students = new ArrayList<>();
 
-  public Course(int id, String name, String description) {
-    this.id = id;
+  public Course() {
+  }
+
+  public Course(String name, Subject subject) {
     this.name = name;
-    this.description = description;
+    this.subject = subject;
+  }
+
+  public Integer getId() {
+    return id;
+  }
+
+  public void setId(Integer id) {
+    this.id = id;
   }
 
   public String getName() {
@@ -24,36 +47,12 @@ public class Course {
     this.name = name;
   }
 
-  public String getDescription() {
-    return description;
+  public Subject getSubject() {
+    return subject;
   }
 
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  @Override
-  public String toString() {
-    return "Course{" +
-        "name='" + name + '\'' +
-        ", description='" + description + '\'' +
-        '}';
-  }
-
-  public int getId() {
-    return id;
-  }
-
-  public List<Subject> getSubjects() {
-    return subjects;
-  }
-
-  public void setSubjects(List<Subject> subjects) {
-    this.subjects = subjects;
-    for (Subject s : subjects) {
-      // s.setCourse(this);
-    }
-    this.subjects = subjects;
+  public void setSubject(Subject subject) {
+    this.subject = subject;
   }
 
   public List<Student> getStudents() {
@@ -62,10 +61,20 @@ public class Course {
 
   public void setStudents(List<Student> students) {
     this.students = students;
-    for (Student s : students) {
-      s.setCourse(this);
-      // s.setSubjects(new ArrayList<>());
+  }
+
+  public void addStudent(Student s) {
+    if (!students.contains(s)) {
+      students.add(s);
     }
-    this.students = students;
+  }
+
+  public void removeStudent(Student s) {
+    students.remove(s);
+  }
+
+  @Override
+  public String toString() {
+    return name + " (" + (subject != null ? subject.getName() : "No Subject") + ")";
   }
 }

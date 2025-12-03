@@ -1,54 +1,84 @@
 package ais;
 
-import ais.service.StudentService;
+import ais.model.User;
+import ais.model.UserRole;
 import ais.repository.StudentRepository;
-import ais.view.StudentView;
-import ais.controller.StudentController;
-
-import ais.service.TeacherService;
-import ais.repository.TeacherRepository;
-import ais.view.TeacherView;
-import ais.controller.TeacherController;
-
-import ais.service.SubjectService;
 import ais.repository.SubjectRepository;
-import ais.view.SubjectView;
-import ais.controller.SubjectController;
-
+import ais.repository.TeacherRepository;
+import ais.repository.UserRepository;
+import ais.service.AuthService;
+import ais.service.StudentService;
+import ais.service.SubjectService;
+import ais.service.TeacherService;
+import ais.view.LoginView;
+import ais.view.MainView;
 import javafx.application.Application;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
 
 public class Main extends Application {
 
+  private SessionFactory sessionFactory;
+  private AuthService authService;
+  private StudentService studentService;
+  private TeacherService teacherService;
+  private SubjectService subjectService;
+
   @Override
-  public void start(Stage stage) {
-    StudentService studentservice = new StudentService(new StudentRepository());
-    StudentView studentview = new StudentView();
-    new StudentController(studentservice, studentview);
+  public void init() {
+    try {
+      System.out.println("Initializing Hibernate...");
+      sessionFactory = new Configuration().configure().buildSessionFactory();
+      System.out.println("Hibernate initialized successfully!");
 
-    // Scene scene = new Scene(view.getView(), 400, 450);
-    // stage.setTitle("Student System");
-    // stage.setScene(scene);
-    // stage.show();
+      UserRepository userRepository = new UserRepository(sessionFactory);
+      StudentRepository studentRepository = new StudentRepository(sessionFactory);
+      TeacherRepository teacherRepository = new TeacherRepository(sessionFactory);
+      SubjectRepository subjectRepository = new SubjectRepository(sessionFactory);
 
-    TeacherService teacherService = new TeacherService(new TeacherRepository());
-    TeacherView teacherView = new TeacherView();
-    new TeacherController(teacherService, teacherView);
+      authService = new AuthService(userRepository);
+      studentService = new StudentService(studentRepository, userRepository);
+      teacherService = new TeacherService(teacherRepository, userRepository);
+      subjectService = new SubjectService(subjectRepository, teacherRepository);
 
-    // Scene teacherScene = new Scene(teacherView.getView(), 400, 450);
-    // stage.setTitle("Teacher System");
-    // stage.setScene(teacherScene);
-    // stage.show();
-    //
-    SubjectService subjectservice = new SubjectService(new SubjectRepository());
-    SubjectView subjectview = new SubjectView();
-    new SubjectController(subjectservice, subjectview);
+      createDefaultUsers(userRepository);
 
-    Scene scene = new Scene(subjectview.getView(), 400, 450);
-    stage.setTitle("Subject System");
-    stage.setScene(scene);
-    stage.show();
+    } catch (Exception e) {
+      System.err.println("Failed to initialize application");
+      e.printStackTrace();
+      System.exit(1);
+    }
+  }
+
+  @Override
+  public void start(Stage primaryStage) {
+    LoginView loginView = new LoginView(authService, () -> {
+      MainView mainView = new MainView(authService, studentService, teacherService, subjectService);
+      mainView.show();
+    });
+
+    loginView.show();
+  }
+
+  private void createDefaultUsers(UserRepository userRepository) {
+    if (userRepository.findAll().isEmpty()) {
+      System.out.println("Creating default users...");
+
+      User admin = new User("admin", "admin", UserRole.ADMIN);
+      userRepository.save(admin);
+
+      System.out.println("Default users created:");
+      System.out.println("  - admin/admin (ADMIN)");
+    }
+  }
+
+  @Override
+  public void stop() {
+    if (sessionFactory != null) {
+      sessionFactory.close();
+      System.out.println("Application closed");
+    }
   }
 
   public static void main(String[] args) {
