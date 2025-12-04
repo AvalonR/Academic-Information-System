@@ -10,6 +10,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
 public class MainView {
@@ -23,9 +25,12 @@ public class MainView {
   private final Stage stage;
   private final Runnable onSwitchUser;
 
+  private final GradeComponentService gradeComponentService;
+
   public MainView(AuthService authService, StudentService studentService,
       TeacherService teacherService, SubjectService subjectService,
       CourseService courseService, GradeService gradeService,
+      GradeComponentService gradeComponentService,
       Runnable onSwitchUser) {
     this.authService = authService;
     this.studentService = studentService;
@@ -33,6 +38,7 @@ public class MainView {
     this.subjectService = subjectService;
     this.courseService = courseService;
     this.gradeService = gradeService;
+    this.gradeComponentService = gradeComponentService;
     this.onSwitchUser = onSwitchUser;
     this.stage = new Stage();
     initUI();
@@ -41,29 +47,39 @@ public class MainView {
   private void initUI() {
     BorderPane root = new BorderPane();
 
-    HBox topBar = new HBox(10);
+    HBox topBar = new HBox(15);
     topBar.setAlignment(Pos.CENTER_LEFT);
-    topBar.setPadding(new Insets(10));
-    topBar.setStyle("-fx-background-color: #2196F3;");
+    topBar.setPadding(new Insets(15, 20, 15, 20));
+    topBar.getStyleClass().add("top-bar");
 
+    VBox welcomeBox = new VBox(2);
     Label welcomeLabel = new Label("Welcome, " + authService.getCurrentUser().getUsername());
-    welcomeLabel.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
+    welcomeLabel.getStyleClass().add("top-bar-label");
+    welcomeLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
 
-    Label roleLabel = new Label("[" + authService.getCurrentUser().getRole() + "]");
-    roleLabel.setStyle("-fx-text-fill: white;");
+    Label roleLabel = new Label(authService.getCurrentUser().getRole().toString());
+    roleLabel.setStyle("-fx-text-fill: rgba(255,255,255,0.8); -fx-font-size: 12px;");
 
-    Button logoutButton = new Button("Logout");
-    logoutButton.setStyle("-fx-background-color: #f44336; -fx-text-fill: white;");
-    logoutButton.setOnAction(e -> handleLogout());
+    welcomeBox.getChildren().addAll(welcomeLabel, roleLabel);
 
     javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
     HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
 
-    topBar.getChildren().addAll(welcomeLabel, roleLabel, spacer, logoutButton);
+    Button logoutButton = new Button("🚪 Logout");
+    logoutButton.getStyleClass().add("button-danger");
+    logoutButton.setFont(Font.font("System", FontWeight.BOLD, 12));
+    logoutButton.setOnAction(e -> handleLogout());
+
+    topBar.getChildren().addAll(welcomeBox, spacer, logoutButton);
 
     TabPane tabPane = new TabPane();
 
     if (authService.isAdmin()) {
+
+      Tab dashboardTab = new Tab("📊 Dashboard");
+      dashboardTab.setClosable(false);
+      dashboardTab
+          .setContent(new DashboardView(studentService, teacherService, subjectService, courseService, gradeService));
       Tab studentsTab = new Tab("Students");
       studentsTab.setClosable(false);
       studentsTab.setContent(new StudentManagementView(studentService));
@@ -76,11 +92,11 @@ public class MainView {
       subjectsTab.setClosable(false);
       subjectsTab.setContent(new SubjectManagementView(subjectService, teacherService));
 
-      Tab coursesTab = new Tab("Courses (Groups)");
+      Tab coursesTab = new Tab("Courses");
       coursesTab.setClosable(false);
       coursesTab.setContent(new CourseManagementView(courseService, subjectService, studentService));
 
-      tabPane.getTabs().addAll(studentsTab, teachersTab, subjectsTab, coursesTab);
+      tabPane.getTabs().addAll(dashboardTab, studentsTab, teachersTab, subjectsTab, coursesTab);
 
     } else if (authService.isTeacher()) {
 
@@ -90,10 +106,6 @@ public class MainView {
           .orElse(null);
 
       if (teacher != null) {
-        Tab studentsTab = new Tab("Students");
-        studentsTab.setClosable(false);
-        studentsTab.setContent(new StudentListView(studentService));
-
         Tab subjectsTab = new Tab("My Subjects");
         subjectsTab.setClosable(false);
         subjectsTab.setContent(new SubjectListView(subjectService, teacher));
@@ -104,10 +116,10 @@ public class MainView {
 
         Tab gradesTab = new Tab("Grade Students");
         gradesTab.setClosable(false);
-        gradesTab
-            .setContent(new GradeManagementView(gradeService, courseService, subjectService, studentService, teacher));
+        gradesTab.setContent(new GradeManagementView(gradeService, courseService, subjectService, studentService,
+            gradeComponentService, teacher));
 
-        tabPane.getTabs().addAll(studentsTab, subjectsTab, coursesTab, gradesTab);
+        tabPane.getTabs().addAll(subjectsTab, coursesTab, gradesTab);
       } else {
         Label noTeacherLabel = new Label("No teacher record found for this account. Please contact an administrator.");
         noTeacherLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: red;");
@@ -146,7 +158,8 @@ public class MainView {
     root.setTop(topBar);
     root.setCenter(tabPane);
 
-    Scene scene = new Scene(root, 1000, 700);
+    Scene scene = new Scene(root, 1100, 750);
+    scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
     stage.setScene(scene);
     stage.setTitle("AIS - " + authService.getCurrentUser().getRole());
   }

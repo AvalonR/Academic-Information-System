@@ -3,17 +3,17 @@ package ais.service;
 import ais.model.Teacher;
 import ais.model.User;
 import ais.model.UserRole;
-import ais.repository.TeacherRepository;
-import ais.repository.UserRepository;
+import ais.repository.ITeacherRepository;
+import ais.repository.IUserRepository;
 
 import java.util.List;
 
 public class TeacherService {
 
-  private final TeacherRepository teacherRepository;
-  private final UserRepository userRepository;
+  private final ITeacherRepository teacherRepository;
+  private final IUserRepository userRepository;
 
-  public TeacherService(TeacherRepository teacherRepository, UserRepository userRepository) {
+  public TeacherService(ITeacherRepository teacherRepository, IUserRepository userRepository) {
     this.teacherRepository = teacherRepository;
     this.userRepository = userRepository;
   }

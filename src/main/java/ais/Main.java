@@ -20,6 +20,7 @@ public class Main extends Application {
   private SubjectService subjectService;
   private CourseService courseService;
   private GradeService gradeService;
+  private GradeComponentService gradeComponentService;
 
   @Override
   public void init() {
@@ -28,12 +29,13 @@ public class Main extends Application {
       sessionFactory = new Configuration().configure().buildSessionFactory();
       System.out.println("Hibernate initialized successfully!");
 
-      UserRepository userRepository = new UserRepository(sessionFactory);
-      StudentRepository studentRepository = new StudentRepository(sessionFactory);
-      TeacherRepository teacherRepository = new TeacherRepository(sessionFactory);
-      SubjectRepository subjectRepository = new SubjectRepository(sessionFactory);
-      CourseRepository courseRepository = new CourseRepository(sessionFactory);
-      GradeRepository gradeRepository = new GradeRepository(sessionFactory);
+      IUserRepository userRepository = new UserRepository(sessionFactory);
+      IStudentRepository studentRepository = new StudentRepository(sessionFactory);
+      ITeacherRepository teacherRepository = new TeacherRepository(sessionFactory);
+      ISubjectRepository subjectRepository = new SubjectRepository(sessionFactory);
+      ICourseRepository courseRepository = new CourseRepository(sessionFactory);
+      IGradeRepository gradeRepository = new GradeRepository(sessionFactory);
+      IGradeComponentRepository gradeComponentRepository = new GradeComponentRepository(sessionFactory);
 
       authService = new AuthService(userRepository);
       studentService = new StudentService(studentRepository, userRepository);
@@ -41,7 +43,8 @@ public class Main extends Application {
       subjectService = new SubjectService(subjectRepository, teacherRepository);
       courseService = new CourseService(courseRepository, subjectRepository, studentRepository);
       gradeService = new GradeService(gradeRepository, studentRepository, subjectRepository,
-          teacherRepository, courseRepository);
+          teacherRepository, courseRepository, gradeComponentRepository);
+      gradeComponentService = new GradeComponentService(gradeComponentRepository, courseRepository, subjectRepository);
 
       createDefaultUsers(userRepository);
 
@@ -61,13 +64,13 @@ public class Main extends Application {
     LoginView loginView = new LoginView(authService, () -> {
       MainView mainView = new MainView(authService, studentService, teacherService,
           subjectService, courseService, gradeService,
-          this::showLoginScreen);
+          gradeComponentService, this::showLoginScreen);
       mainView.show();
     });
     loginView.show();
   }
 
-  private void createDefaultUsers(UserRepository userRepository) {
+  private void createDefaultUsers(IUserRepository userRepository) {
     if (userRepository.findAll().isEmpty()) {
       System.out.println("Creating default users...");
 

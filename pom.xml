@@ -7,7 +7,7 @@
 
     <groupId>ais</groupId>
     <artifactId>student-grading-system</artifactId>
-    <version>0.01</version>
+    <version>1.0</version>
 
     <properties>
         <maven.compiler.source>25</maven.compiler.source>

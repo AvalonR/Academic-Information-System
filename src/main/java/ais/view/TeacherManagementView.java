@@ -5,9 +5,9 @@ import ais.service.TeacherService;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 
 public class TeacherManagementView extends VBox {
 
@@ -25,6 +25,7 @@ public class TeacherManagementView extends VBox {
     this.teacherService = teacherService;
     initUI();
     refreshTeacherList();
+    this.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
   }
 
   private void initUI() {
@@ -32,57 +33,97 @@ public class TeacherManagementView extends VBox {
     setSpacing(15);
 
     Label titleLabel = new Label("Teacher Management");
-    titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+    titleLabel.getStyleClass().add("label-title");
 
-    VBox formBox = new VBox(10);
-    formBox.setStyle("-fx-border-color: #ddd; -fx-border-width: 1; -fx-padding: 15; -fx-background-color: #f9f9f9;");
+    ScrollPane scrollPane = new ScrollPane();
+    scrollPane.setFitToWidth(true);
+    scrollPane.setStyle("-fx-background-color: transparent;");
+    VBox.setVgrow(scrollPane, Priority.ALWAYS);
+
+    VBox contentBox = new VBox(15);
+    contentBox.setPadding(new Insets(10));
+
+    VBox formCard = new VBox(15);
+    formCard.getStyleClass().add("form-section");
+    formCard.setMaxWidth(Double.MAX_VALUE);
 
     Label formTitle = new Label("Teacher Form");
-    formTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+    formTitle.setFont(Font.font("System", FontWeight.BOLD, 14));
+
+    Label nameLabel = new Label("Name:");
+    nameLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
 
     nameField = new TextField();
     nameField.setPromptText("Full Name (e.g., Robert Smith)");
+    nameField.setMaxWidth(Double.MAX_VALUE);
+
+    Label addressLabel = new Label("Address:");
+    addressLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
 
     addressField = new TextField();
     addressField.setPromptText("Address");
+    addressField.setMaxWidth(Double.MAX_VALUE);
+
+    Label specializationLabel = new Label("Specialization:");
+    specializationLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
 
     specializationField = new TextField();
     specializationField.setPromptText("Specialization (e.g., Mathematics, Physics)");
+    specializationField.setMaxWidth(Double.MAX_VALUE);
 
-    HBox buttonBox = new HBox(10);
+    GridPane buttonGrid = new GridPane();
+    buttonGrid.setHgap(10);
+    buttonGrid.setVgap(10);
+
     Button addButton = new Button("Add Teacher");
-    addButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+    addButton.getStyleClass().add("button-primary");
+    addButton.setMaxWidth(Double.MAX_VALUE);
     addButton.setOnAction(e -> handleAdd());
 
     Button updateButton = new Button("Update Teacher");
-    updateButton.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white;");
+    updateButton.getStyleClass().add("button-secondary");
+    updateButton.setMaxWidth(Double.MAX_VALUE);
     updateButton.setOnAction(e -> handleUpdate());
 
     Button deleteButton = new Button("Delete Teacher");
-    deleteButton.setStyle("-fx-background-color: #f44336; -fx-text-fill: white;");
+    deleteButton.getStyleClass().add("button-danger");
+    deleteButton.setMaxWidth(Double.MAX_VALUE);
     deleteButton.setOnAction(e -> handleDelete());
 
     Button clearButton = new Button("Clear Form");
+    clearButton.getStyleClass().add("button-default");
+    clearButton.setMaxWidth(Double.MAX_VALUE);
     clearButton.setOnAction(e -> clearForm());
 
-    buttonBox.getChildren().addAll(addButton, updateButton, deleteButton, clearButton);
+    buttonGrid.add(addButton, 0, 0);
+    buttonGrid.add(updateButton, 1, 0);
+    buttonGrid.add(deleteButton, 0, 1);
+    buttonGrid.add(clearButton, 1, 1);
 
-    formBox.getChildren().addAll(
+    ColumnConstraints col1 = new ColumnConstraints();
+    col1.setPercentWidth(50);
+    ColumnConstraints col2 = new ColumnConstraints();
+    col2.setPercentWidth(50);
+    buttonGrid.getColumnConstraints().addAll(col1, col2);
+
+    formCard.getChildren().addAll(
         formTitle,
-        new Label("Name:"),
+        nameLabel,
         nameField,
-        new Label("Address:"),
+        addressLabel,
         addressField,
-        new Label("Specialization:"),
+        specializationLabel,
         specializationField,
-        buttonBox);
+        buttonGrid);
+
+    VBox listCard = new VBox(10);
+    listCard.getStyleClass().add("form-section");
 
     Label listLabel = new Label("Teachers (click to edit):");
-    listLabel.setStyle("-fx-font-weight: bold;");
+    listLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
 
     teacherListView = new ListView<>();
-    teacherListView.setPrefHeight(200);
-    VBox.setVgrow(teacherListView, Priority.ALWAYS);
+    teacherListView.setPrefHeight(250);
 
     teacherListView.setOnMouseClicked(e -> {
       Teacher selected = teacherListView.getSelectionModel().getSelectedItem();
@@ -91,19 +132,22 @@ public class TeacherManagementView extends VBox {
       }
     });
 
+    listCard.getChildren().addAll(listLabel, teacherListView);
+
+    contentBox.getChildren().addAll(formCard, listCard);
+    scrollPane.setContent(contentBox);
+
     messageArea = new TextArea();
     messageArea.setEditable(false);
     messageArea.setPrefHeight(100);
-    messageArea.setStyle("-fx-font-family: monospace; -fx-font-size: 11px;");
+    messageArea.getStyleClass().add("message-area");
 
     Label messageLabel = new Label("Messages:");
-    messageLabel.setStyle("-fx-font-weight: bold;");
+    messageLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
 
     getChildren().addAll(
         titleLabel,
-        formBox,
-        listLabel,
-        teacherListView,
+        scrollPane,
         messageLabel,
         messageArea);
   }

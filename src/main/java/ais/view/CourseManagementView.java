@@ -9,9 +9,9 @@ import ais.service.SubjectService;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 
 import java.util.Set;
 
@@ -44,62 +44,116 @@ public class CourseManagementView extends VBox {
     this.studentService = studentService;
     initUI();
     refreshCourseList();
+    this.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
   }
 
   private void initUI() {
     setPadding(new Insets(20));
     setSpacing(15);
 
-    Label titleLabel = new Label("Course (Group) Management");
-    titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+    Label titleLabel = new Label("Course Management");
+    titleLabel.getStyleClass().add("label-title");
 
-    HBox mainContent = new HBox(15);
+    ScrollPane scrollPane = new ScrollPane();
+    scrollPane.setFitToWidth(true);
+    scrollPane.setStyle("-fx-background-color: transparent;");
+    VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
-    VBox leftSide = new VBox(10);
-    leftSide.setStyle("-fx-border-color: #ddd; -fx-border-width: 1; -fx-padding: 15; -fx-background-color: #f9f9f9;");
+    VBox contentBox = new VBox(15);
+    contentBox.setPadding(new Insets(10));
+
+    VBox formCard = new VBox(15);
+    formCard.getStyleClass().add("form-section");
+    formCard.setMaxWidth(Double.MAX_VALUE);
 
     Label formTitle = new Label("Course Form");
-    formTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+    formTitle.setFont(Font.font("System", FontWeight.BOLD, 14));
+
+    Label nameLabel = new Label("Name:");
+    nameLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
 
     nameField = new TextField();
     nameField.setPromptText("Course Name (e.g., Computer Science 101)");
+    nameField.setMaxWidth(Double.MAX_VALUE);
+
+    Label descriptionLabel = new Label("Description:");
+    descriptionLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
 
     descriptionField = new TextArea();
     descriptionField.setPromptText("Description (optional)");
     descriptionField.setPrefRowCount(3);
+    descriptionField.setMaxWidth(Double.MAX_VALUE);
+
+    Label yearLabel = new Label("Year:");
+    yearLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
 
     yearField = new TextField();
     yearField.setPromptText("Year (e.g., 2024)");
+    yearField.setMaxWidth(Double.MAX_VALUE);
+
+    Label semesterLabel = new Label("Semester:");
+    semesterLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
 
     semesterCombo = new ComboBox<>();
     semesterCombo.setItems(FXCollections.observableArrayList("Fall", "Spring", "Summer", "Winter"));
     semesterCombo.setPromptText("Select Semester");
     semesterCombo.setMaxWidth(Double.MAX_VALUE);
 
-    HBox buttonBox = new HBox(10);
+    GridPane buttonGrid = new GridPane();
+    buttonGrid.setHgap(10);
+    buttonGrid.setVgap(10);
+
     Button addButton = new Button("Add Course");
-    addButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+    addButton.getStyleClass().add("button-primary");
+    addButton.setMaxWidth(Double.MAX_VALUE);
     addButton.setOnAction(e -> handleAdd());
 
     Button updateButton = new Button("Update Course");
-    updateButton.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white;");
+    updateButton.getStyleClass().add("button-secondary");
+    updateButton.setMaxWidth(Double.MAX_VALUE);
     updateButton.setOnAction(e -> handleUpdate());
 
     Button deleteButton = new Button("Delete Course");
-    deleteButton.setStyle("-fx-background-color: #f44336; -fx-text-fill: white;");
+    deleteButton.getStyleClass().add("button-danger");
+    deleteButton.setMaxWidth(Double.MAX_VALUE);
     deleteButton.setOnAction(e -> handleDelete());
 
     Button clearButton = new Button("Clear Form");
+    clearButton.getStyleClass().add("button-default");
+    clearButton.setMaxWidth(Double.MAX_VALUE);
     clearButton.setOnAction(e -> clearForm());
 
-    buttonBox.getChildren().addAll(addButton, updateButton, deleteButton, clearButton);
+    buttonGrid.add(addButton, 0, 0);
+    buttonGrid.add(updateButton, 1, 0);
+    buttonGrid.add(deleteButton, 0, 1);
+    buttonGrid.add(clearButton, 1, 1);
+
+    ColumnConstraints col1 = new ColumnConstraints();
+    col1.setPercentWidth(50);
+    ColumnConstraints col2 = new ColumnConstraints();
+    col2.setPercentWidth(50);
+    buttonGrid.getColumnConstraints().addAll(col1, col2);
+
+    formCard.getChildren().addAll(
+        formTitle,
+        nameLabel,
+        nameField,
+        descriptionLabel,
+        descriptionField,
+        yearLabel,
+        yearField,
+        semesterLabel,
+        semesterCombo,
+        buttonGrid);
+
+    VBox listCard = new VBox(10);
+    listCard.getStyleClass().add("form-section");
 
     Label listLabel = new Label("Courses (click to edit):");
-    listLabel.setStyle("-fx-font-weight: bold;");
+    listLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
 
     courseListView = new ListView<>();
-    courseListView.setPrefHeight(150);
-    VBox.setVgrow(courseListView, Priority.ALWAYS);
+    courseListView.setPrefHeight(200);
 
     courseListView.setOnMouseClicked(e -> {
       Course selected = courseListView.getSelectionModel().getSelectedItem();
@@ -108,102 +162,97 @@ public class CourseManagementView extends VBox {
       }
     });
 
-    leftSide.getChildren().addAll(
-        formTitle,
-        new Label("Name:"),
-        nameField,
-        new Label("Description:"),
-        descriptionField,
-        new Label("Year:"),
-        yearField,
-        new Label("Semester:"),
-        semesterCombo,
-        buttonBox,
-        new Separator(),
-        listLabel,
-        courseListView);
+    listCard.getChildren().addAll(listLabel, courseListView);
 
-    VBox rightSide = new VBox(15);
-
-    VBox subjectsSection = new VBox(10);
-    subjectsSection
-        .setStyle("-fx-border-color: #ddd; -fx-border-width: 1; -fx-padding: 15; -fx-background-color: #f9f9f9;");
+    VBox subjectsCard = new VBox(15);
+    subjectsCard.getStyleClass().add("form-section");
 
     Label subjectsTitle = new Label("Course Subjects");
-    subjectsTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+    subjectsTitle.setFont(Font.font("System", FontWeight.BOLD, 14));
+
+    Label subjectsInLabel = new Label("Subjects in this course:");
+    subjectsInLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
 
     courseSubjectsListView = new ListView<>();
     courseSubjectsListView.setPrefHeight(120);
 
     Button removeSubjectButton = new Button("Remove Selected Subject");
-    removeSubjectButton.setStyle("-fx-background-color: #ff9800; -fx-text-fill: white;");
+    removeSubjectButton.getStyleClass().add("button-warning");
+    removeSubjectButton.setMaxWidth(Double.MAX_VALUE);
     removeSubjectButton.setOnAction(e -> handleRemoveSubject());
+
+    Label addSubjectLabel = new Label("Add subject:");
+    addSubjectLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
 
     availableSubjectsCombo = new ComboBox<>();
     availableSubjectsCombo.setPromptText("Select subject to add");
     availableSubjectsCombo.setMaxWidth(Double.MAX_VALUE);
-
     Button addSubjectButton = new Button("Add Subject");
-    addSubjectButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+    addSubjectButton.getStyleClass().add("button-primary");
+    addSubjectButton.setMaxWidth(Double.MAX_VALUE);
     addSubjectButton.setOnAction(e -> handleAddSubject());
 
-    subjectsSection.getChildren().addAll(
+    subjectsCard.getChildren().addAll(
         subjectsTitle,
-        new Label("Subjects in this course:"),
+        subjectsInLabel,
         courseSubjectsListView,
         removeSubjectButton,
-        new Label("Add subject:"),
+        addSubjectLabel,
         availableSubjectsCombo,
         addSubjectButton);
 
-    VBox studentsSection = new VBox(10);
-    studentsSection
-        .setStyle("-fx-border-color: #ddd; -fx-border-width: 1; -fx-padding: 15; -fx-background-color: #f9f9f9;");
+    VBox studentsCard = new VBox(15);
+    studentsCard.getStyleClass().add("form-section");
 
     Label studentsTitle = new Label("Enrolled Students");
-    studentsTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+    studentsTitle.setFont(Font.font("System", FontWeight.BOLD, 14));
+
+    Label studentsEnrolledLabel = new Label("Students enrolled:");
+    studentsEnrolledLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
 
     courseStudentsListView = new ListView<>();
     courseStudentsListView.setPrefHeight(120);
 
     Button unenrollButton = new Button("Unenroll Selected Student");
-    unenrollButton.setStyle("-fx-background-color: #ff9800; -fx-text-fill: white;");
+    unenrollButton.getStyleClass().add("button-warning");
+    unenrollButton.setMaxWidth(Double.MAX_VALUE);
     unenrollButton.setOnAction(e -> handleUnenrollStudent());
+
+    Label enrollStudentLabel = new Label("Enroll student:");
+    enrollStudentLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
 
     availableStudentsCombo = new ComboBox<>();
     availableStudentsCombo.setPromptText("Select student to enroll");
     availableStudentsCombo.setMaxWidth(Double.MAX_VALUE);
 
     Button enrollButton = new Button("Enroll Student");
-    enrollButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+    enrollButton.getStyleClass().add("button-primary");
+    enrollButton.setMaxWidth(Double.MAX_VALUE);
     enrollButton.setOnAction(e -> handleEnrollStudent());
 
-    studentsSection.getChildren().addAll(
+    studentsCard.getChildren().addAll(
         studentsTitle,
-        new Label("Students enrolled:"),
+        studentsEnrolledLabel,
         courseStudentsListView,
         unenrollButton,
-        new Label("Enroll student:"),
+        enrollStudentLabel,
         availableStudentsCombo,
         enrollButton);
 
-    rightSide.getChildren().addAll(subjectsSection, studentsSection);
-
-    HBox.setHgrow(leftSide, Priority.ALWAYS);
-    HBox.setHgrow(rightSide, Priority.ALWAYS);
-    mainContent.getChildren().addAll(leftSide, rightSide);
+    contentBox.getChildren().addAll(formCard, listCard, subjectsCard, studentsCard);
+    scrollPane.setContent(contentBox);
 
     messageArea = new TextArea();
     messageArea.setEditable(false);
     messageArea.setPrefHeight(100);
-    messageArea.setStyle("-fx-font-family: monospace; -fx-font-size: 11px;");
+    messageArea.getStyleClass().add("message-area");
 
     Label messageLabel = new Label("Messages:");
-    messageLabel.setStyle("-fx-font-weight: bold;");
+    messageLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
 
     getChildren().addAll(
         titleLabel,
-        mainContent,
+        scrollPane,
         messageLabel,
         messageArea);
   }
@@ -428,7 +477,7 @@ public class CourseManagementView extends VBox {
   }
 
   private void showMessage(String message, boolean isError) {
-    String timestamp = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("H:mm:ss"));
+    String timestamp = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
     String formattedMessage = "[" + timestamp + "] " + message + "\n";
     messageArea.appendText(formattedMessage);
   }

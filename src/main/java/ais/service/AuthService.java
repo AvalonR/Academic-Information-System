@@ -1,14 +1,14 @@
 package ais.service;
 
 import ais.model.User;
-import ais.repository.UserRepository;
+import ais.repository.IUserRepository;
 
 public class AuthService {
 
-  private final UserRepository userRepository;
+  private final IUserRepository userRepository;
   private User currentUser;
 
-  public AuthService(UserRepository userRepository) {
+  public AuthService(IUserRepository userRepository) {
     this.userRepository = userRepository;
   }
 

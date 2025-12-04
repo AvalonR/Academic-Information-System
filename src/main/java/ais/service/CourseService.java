@@ -3,22 +3,22 @@ package ais.service;
 import ais.model.Course;
 import ais.model.Student;
 import ais.model.Subject;
-import ais.repository.CourseRepository;
-import ais.repository.StudentRepository;
-import ais.repository.SubjectRepository;
+import ais.repository.ICourseRepository;
+import ais.repository.IStudentRepository;
+import ais.repository.ISubjectRepository;
 
 import java.util.List;
 import java.util.Set;
 
 public class CourseService {
 
-  private final CourseRepository courseRepository;
-  private final SubjectRepository subjectRepository;
-  private final StudentRepository studentRepository;
+  private final ICourseRepository courseRepository;
+  private final ISubjectRepository subjectRepository;
+  private final IStudentRepository studentRepository;
 
-  public CourseService(CourseRepository courseRepository,
-      SubjectRepository subjectRepository,
-      StudentRepository studentRepository) {
+  public CourseService(ICourseRepository courseRepository,
+      ISubjectRepository subjectRepository,
+      IStudentRepository studentRepository) {
     this.courseRepository = courseRepository;
     this.subjectRepository = subjectRepository;
     this.studentRepository = studentRepository;

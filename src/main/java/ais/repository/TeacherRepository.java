@@ -7,7 +7,7 @@ import org.hibernate.Transaction;
 
 import java.util.List;
 
-public class TeacherRepository {
+public class TeacherRepository implements ITeacherRepository {
 
   private final SessionFactory sessionFactory;
 

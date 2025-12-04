@@ -6,7 +6,10 @@ import ais.service.SubjectService;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 
 import java.util.List;
 
@@ -22,23 +25,29 @@ public class SubjectListView extends VBox {
     this.currentTeacher = currentTeacher;
     initUI();
     loadSubjects();
+    this.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
   }
 
   private void initUI() {
     setPadding(new Insets(20));
     setSpacing(15);
 
-    Label titleLabel = new Label("My Subjects (Read-Only)");
-    titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+    Label titleLabel = new Label("My Subjects");
+    titleLabel.getStyleClass().add("label-title");
 
     Label infoLabel = new Label("Showing only subjects you teach. You cannot edit subjects.");
     infoLabel.setStyle("-fx-text-fill: #666; -fx-font-style: italic;");
 
+    VBox listCard = new VBox(10);
+    listCard.getStyleClass().add("form-section");
+    VBox.setVgrow(listCard, Priority.ALWAYS);
+
     Label listLabel = new Label("Your Subjects:");
-    listLabel.setStyle("-fx-font-weight: bold;");
+    listLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
 
     subjectListView = new ListView<>();
     subjectListView.setPrefHeight(300);
+    VBox.setVgrow(subjectListView, Priority.ALWAYS);
 
     subjectListView.setOnMouseClicked(e -> {
       Subject selected = subjectListView.getSelectionModel().getSelectedItem();
@@ -47,25 +56,32 @@ public class SubjectListView extends VBox {
       }
     });
 
+    listCard.getChildren().addAll(listLabel, subjectListView);
+
+    VBox detailsCard = new VBox(10);
+    detailsCard.getStyleClass().add("form-section");
+
     Label detailsLabel = new Label("Subject Details:");
-    detailsLabel.setStyle("-fx-font-weight: bold;");
+    detailsLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
 
     detailsArea = new TextArea();
     detailsArea.setEditable(false);
     detailsArea.setPrefHeight(150);
     detailsArea.setPromptText("Select a subject to view details");
+    detailsArea.getStyleClass().add("message-area");
 
     Button refreshButton = new Button("Refresh List");
+    refreshButton.getStyleClass().add("button-default");
+    refreshButton.setMaxWidth(Double.MAX_VALUE);
     refreshButton.setOnAction(e -> loadSubjects());
+
+    detailsCard.getChildren().addAll(detailsLabel, detailsArea, refreshButton);
 
     getChildren().addAll(
         titleLabel,
         infoLabel,
-        listLabel,
-        subjectListView,
-        detailsLabel,
-        detailsArea,
-        refreshButton);
+        listCard,
+        detailsCard);
   }
 
   private void loadSubjects() {

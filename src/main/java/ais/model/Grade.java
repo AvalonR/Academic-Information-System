@@ -12,6 +12,10 @@ public class Grade {
   private Integer id;
 
   @ManyToOne
+  @JoinColumn(name = "component_id", nullable = true)
+  private GradeComponent component;
+
+  @ManyToOne
   @JoinColumn(name = "student_id", nullable = false)
   private Student student;
 
@@ -31,9 +35,6 @@ public class Grade {
   private Double gradeValue;
 
   @Column(nullable = true)
-  private String letterGrade;
-
-  @Column(nullable = true)
   private String comments;
 
   @Column(nullable = false)
@@ -44,13 +45,13 @@ public class Grade {
   }
 
   public Grade(Student student, Subject subject, Teacher teacher, Course course,
-      Double gradeValue, String letterGrade, String comments) {
+      GradeComponent component, Double gradeValue, String comments) {
     this.student = student;
     this.subject = subject;
     this.teacher = teacher;
     this.course = course;
+    this.component = component;
     this.gradeValue = gradeValue;
-    this.letterGrade = letterGrade;
     this.comments = comments;
     this.dateGiven = LocalDate.now();
   }
@@ -103,12 +104,12 @@ public class Grade {
     this.gradeValue = gradeValue;
   }
 
-  public String getLetterGrade() {
-    return letterGrade;
+  public GradeComponent getComponent() {
+    return component;
   }
 
-  public void setLetterGrade(String letterGrade) {
-    this.letterGrade = letterGrade;
+  public void setComponent(GradeComponent component) {
+    this.component = component;
   }
 
   public String getComments() {
@@ -129,7 +130,9 @@ public class Grade {
 
   @Override
   public String toString() {
-    return student.getName() + " - " + subject.getName() + ": " +
-        gradeValue + (letterGrade != null ? " (" + letterGrade + ")" : "");
+    String status = gradeValue >= 5.0 ? "PASS" : "FAIL";
+    return student.getName() + " - " + subject.getName() +
+        (component != null ? " (" + component.getName() + ")" : "") +
+        ": " + gradeValue + " [" + status + "]";
   }
 }

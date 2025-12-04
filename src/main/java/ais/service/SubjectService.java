@@ -2,18 +2,18 @@ package ais.service;
 
 import ais.model.Subject;
 import ais.model.Teacher;
-import ais.repository.SubjectRepository;
-import ais.repository.TeacherRepository;
+import ais.repository.ISubjectRepository;
+import ais.repository.ITeacherRepository;
 
 import java.util.List;
 import java.util.Set;
 
 public class SubjectService {
 
-  private final SubjectRepository subjectRepository;
-  private final TeacherRepository teacherRepository;
+  private final ISubjectRepository subjectRepository;
+  private final ITeacherRepository teacherRepository;
 
-  public SubjectService(SubjectRepository subjectRepository, TeacherRepository teacherRepository) {
+  public SubjectService(ISubjectRepository subjectRepository, ITeacherRepository teacherRepository) {
     this.subjectRepository = subjectRepository;
     this.teacherRepository = teacherRepository;
   }

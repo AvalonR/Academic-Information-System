@@ -11,7 +11,7 @@ import org.hibernate.Transaction;
 
 import java.util.List;
 
-public class GradeRepository {
+public class GradeRepository implements IGradeRepository {
 
   private final SessionFactory sessionFactory;
 

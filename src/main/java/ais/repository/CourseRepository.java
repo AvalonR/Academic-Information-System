@@ -9,7 +9,7 @@ import org.hibernate.Transaction;
 
 import java.util.List;
 
-public class CourseRepository {
+public class CourseRepository implements ICourseRepository {
 
   private final SessionFactory sessionFactory;
 

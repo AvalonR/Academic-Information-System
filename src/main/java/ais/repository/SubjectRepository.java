@@ -8,7 +8,7 @@ import org.hibernate.Transaction;
 
 import java.util.List;
 
-public class SubjectRepository {
+public class SubjectRepository implements ISubjectRepository {
 
   private final SessionFactory sessionFactory;
 

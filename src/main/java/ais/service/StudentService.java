@@ -3,17 +3,17 @@ package ais.service;
 import ais.model.Student;
 import ais.model.User;
 import ais.model.UserRole;
-import ais.repository.StudentRepository;
-import ais.repository.UserRepository;
+import ais.repository.IStudentRepository;
+import ais.repository.IUserRepository;
 
 import java.util.List;
 
 public class StudentService {
 
-  private final StudentRepository studentRepository;
-  private final UserRepository userRepository;
+  private final IStudentRepository studentRepository;
+  private final IUserRepository userRepository;
 
-  public StudentService(StudentRepository studentRepository, UserRepository userRepository) {
+  public StudentService(IStudentRepository studentRepository, IUserRepository userRepository) {
     this.studentRepository = studentRepository;
     this.userRepository = userRepository;
   }
